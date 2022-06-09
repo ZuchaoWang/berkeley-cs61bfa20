@@ -366,3 +366,6 @@ tramp
 
 # Project 1B things
 # words
+
+# vscode plugins
+.vscode
