@@ -22,7 +22,21 @@ public class TimeAList {
     }
 
     public static void timeAListConstruction() {
-        // TODO: YOUR CODE HERE
+        int N = 1000;
+        int rounds = 8;
+        List<Integer> Ns = new ArrayList<Integer>();
+        List<Double> times = new ArrayList<Double>();
+        AList<Integer> al = null;
+        for(int i=0; i<rounds; i++) {
+            al = new AList<Integer>();
+            Stopwatch sw = new Stopwatch();
+            for(int j=0; j<N; j++) al.addLast(0);
+            double timeInSeconds = sw.elapsedTime();
+            Ns.add(N);
+            times.add(timeInSeconds);
+            N *= 2;
+        }
+        printTimingTable(Ns, times, Ns);
     }
 
 
