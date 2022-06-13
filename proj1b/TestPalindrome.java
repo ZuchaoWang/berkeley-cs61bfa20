@@ -15,4 +15,21 @@ public class TestPalindrome {
         }
         assertEquals("persiflage", actual);
     }
+
+    @Test
+    public void testIsPalindrome() {
+        assertTrue(palindrome.isPalindrome("noon"));
+        assertFalse(palindrome.isPalindrome("cat"));
+        assertFalse(palindrome.isPalindrome("a"));
+        assertFalse(palindrome.isPalindrome(null));
+
+        OffByOne of1 = new OffByOne();
+        assertFalse(palindrome.isPalindrome("noon", of1));
+        assertTrue(palindrome.isPalindrome("flake", of1));
+
+        OffByN ofn = new OffByN(2);
+        assertFalse(palindrome.isPalindrome("noon", ofn));
+        assertFalse(palindrome.isPalindrome("flake", ofn));
+        assertTrue(palindrome.isPalindrome("fland", ofn));
+    }
 }
