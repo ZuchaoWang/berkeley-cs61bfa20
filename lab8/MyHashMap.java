@@ -35,7 +35,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
   }
 
   private void initMyHashMap(int initialSize, double loadFactor) {
-    hashTable = (List<MyHashMapNode>[]) new Object[initialSize];
+    hashTable = (List<MyHashMapNode>[]) new List[initialSize];
     lf = loadFactor;
     clear();
   }
@@ -59,7 +59,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     List<MyHashMapNode> bucket = hashTable[index];
     if (bucket != null) {
       for (MyHashMapNode node: bucket) {
-        if(key == node.key) return true;
+        if(key.equals(node.key)) return true;
       }
     }
     return false;
@@ -72,7 +72,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     List<MyHashMapNode> bucket = hashTable[index];
     if (bucket != null) {
       for (MyHashMapNode node: bucket) {
-        if(key == node.key) return node.value;
+        if(key.equals(node.key)) return node.value;
       }
     }
     return null;
@@ -94,7 +94,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
       bucket = hashTable[index];
     }
     for (MyHashMapNode node: bucket) {
-      if(key == node.key) {
+      if(key.equals(node.key)) {
         node.value = value;
         return;
       }
@@ -107,7 +107,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
   }
 
   private void resize(int newSize) {
-    List<MyHashMapNode>[] newHashTable = (List<MyHashMapNode>[]) new Object[newSize];
+    List<MyHashMapNode>[] newHashTable = (List<MyHashMapNode>[]) new List[newSize];
     for(int i=0; i<hashTable.length; i++) {
       List<MyHashMapNode> bucket = hashTable[i];
       if (bucket != null) {

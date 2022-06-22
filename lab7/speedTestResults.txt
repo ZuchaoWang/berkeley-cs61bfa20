@@ -1,4 +1,7 @@
-RandomSpeedTest
+Notice during insertion, we always need to first check if the to be inserted is already contained in the map
+Thus ULLMap insertion is always slow due to linear checking, although the "pure insertion" takes constant time
+
+RandomSpeedTest: BSTMap is bushy thus as good as built-in TreeMap
 Enter # strings to insert into the maps: 5000
 class ULLMap: 0.09 sec
 class BSTMap: 0.00 sec
@@ -36,7 +39,7 @@ Enter # strings to insert into the maps: 1280000
 class BSTMap: 1.29 sec
 Java's Built-in TreeMap: 1.26 sec
 
-InOrderSpeedTest
+InOrderSpeedTest: BSTMap is spindly thus as bad as ULLMap
 Enter # strings to insert into the maps: 5000
 class ULLMap: 0.20 sec
 class BSTMap: 0.19 sec

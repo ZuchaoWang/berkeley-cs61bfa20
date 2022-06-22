@@ -1,0 +1,114 @@
+Notice during insertion, we always need to first check if the to be inserted is already contained in the map
+Thus ULLMap insertion is always slow due to linear checking, although the "pure insertion" takes constant time
+
+RandomSpeedTest
+Enter # strings to insert into ULLMap: 5000 
+class ULLMap: 0.09 sec
+Enter # strings to insert into your MyHashMap: 5000
+class MyHashMap: 0.01 sec
+Enter # strings to insert into Java's HashMap: 5000
+Java's Built-in HashMap: 0.00 sec
+Enter # strings to insert into ULLMap: 10000
+class ULLMap: 0.30 sec
+Enter # strings to insert into your MyHashMap: 10000
+class MyHashMap: 0.01 sec
+Enter # strings to insert into Java's HashMap: 10000
+Java's Built-in HashMap: 0.00 sec
+Enter # strings to insert into ULLMap: 20000
+class ULLMap: 1.05 sec
+Enter # strings to insert into your MyHashMap: 20000
+class MyHashMap: 0.02 sec
+Enter # strings to insert into Java's HashMap: 20000
+Java's Built-in HashMap: 0.01 sec
+Enter # strings to insert into ULLMap: 40000
+--Stack Overflow -- couldn't add 40000 strings of length 8.
+Enter # strings to insert into your MyHashMap: 40000
+class MyHashMap: 0.02 sec
+Enter # strings to insert into Java's HashMap: 40000
+Java's Built-in HashMap: 0.01 sec
+Enter # strings to insert into ULLMap: 80000
+--Stack Overflow -- couldn't add 80000 strings of length 8.
+Enter # strings to insert into your MyHashMap: 80000
+class MyHashMap: 0.06 sec
+Enter # strings to insert into Java's HashMap: 80000
+Java's Built-in HashMap: 0.02 sec
+Enter # strings to insert into ULLMap: 160000
+--Stack Overflow -- couldn't add 160000 strings of length 8.
+Enter # strings to insert into your MyHashMap: 160000
+class MyHashMap: 0.09 sec
+Enter # strings to insert into Java's HashMap: 160000
+Java's Built-in HashMap: 0.06 sec
+Enter # strings to insert into ULLMap: 320000
+--Stack Overflow -- couldn't add 320000 strings of length 8.
+Enter # strings to insert into your MyHashMap: 320000
+class MyHashMap: 0.16 sec
+Enter # strings to insert into Java's HashMap: 320000
+Java's Built-in HashMap: 0.14 sec
+Enter # strings to insert into ULLMap: 640000
+--Stack Overflow -- couldn't add 640000 strings of length 8.
+Enter # strings to insert into your MyHashMap: 640000
+class MyHashMap: 0.37 sec
+Enter # strings to insert into Java's HashMap: 640000
+Java's Built-in HashMap: 0.29 sec
+Enter # strings to insert into ULLMap: 1280000
+--Stack Overflow -- couldn't add 1280000 strings of length 8.
+Enter # strings to insert into your MyHashMap: 1280000
+class MyHashMap: 0.98 sec
+Enter # strings to insert into Java's HashMap: 1280000
+Java's Built-in HashMap: 0.52 sec
+
+InOrderSpeedTest
+Enter # strings to insert into ULLMap: 5000
+class ULLMap: 0.20 sec
+Enter # strings to insert into MyHashMap: 5000
+class MyHashMap: 0.01 sec
+Enter # strings to insert into Java's HashMap: 5000
+Java's Built-in HashMap: 0.01 sec
+Enter # strings to insert into ULLMap: 10000
+class ULLMap: 0.47 sec
+Enter # strings to insert into MyHashMap: 10000
+class MyHashMap: 0.01 sec
+Enter # strings to insert into Java's HashMap: 10000
+Java's Built-in HashMap: 0.01 sec
+Enter # strings to insert into ULLMap: 20000
+class ULLMap: 1.88 sec
+Enter # strings to insert into MyHashMap: 20000
+class MyHashMap: 0.01 sec
+Enter # strings to insert into Java's HashMap: 20000
+Java's Built-in HashMap: 0.02 sec
+Enter # strings to insert into ULLMap: 40000
+--Stack Overflow -- couldn't add 40000 strings.
+Enter # strings to insert into MyHashMap: 40000
+class MyHashMap: 0.05 sec
+Enter # strings to insert into Java's HashMap: 40000
+Java's Built-in HashMap: 0.03 sec
+Enter # strings to insert into ULLMap: 80000
+--Stack Overflow -- couldn't add 80000 strings.
+Enter # strings to insert into MyHashMap: 80000
+class MyHashMap: 0.04 sec
+Enter # strings to insert into Java's HashMap: 80000
+Java's Built-in HashMap: 0.04 sec
+Enter # strings to insert into ULLMap: 160000
+--Stack Overflow -- couldn't add 160000 strings.
+Enter # strings to insert into MyHashMap: 160000
+class MyHashMap: 0.10 sec
+Enter # strings to insert into Java's HashMap: 160000
+Java's Built-in HashMap: 0.07 sec
+Enter # strings to insert into ULLMap: 320000
+--Stack Overflow -- couldn't add 320000 strings.
+Enter # strings to insert into MyHashMap: 320000
+class MyHashMap: 0.17 sec
+Enter # strings to insert into Java's HashMap: 320000
+Java's Built-in HashMap: 0.14 sec
+Enter # strings to insert into ULLMap: 640000
+--Stack Overflow -- couldn't add 640000 strings.
+Enter # strings to insert into MyHashMap: 640000
+class MyHashMap: 0.32 sec
+Enter # strings to insert into Java's HashMap: 640000
+Java's Built-in HashMap: 0.29 sec
+Enter # strings to insert into ULLMap: 1280000
+--Stack Overflow -- couldn't add 1280000 strings.
+Enter # strings to insert into MyHashMap: 1280000
+class MyHashMap: 0.90 sec
+Enter # strings to insert into Java's HashMap: 1280000
+Java's Built-in HashMap: 0.64 sec
