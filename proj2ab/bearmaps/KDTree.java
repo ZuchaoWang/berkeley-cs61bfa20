@@ -74,8 +74,20 @@ public class KDTree implements PointSet {
       return curNearestPt;
     if (curNearestPt == null || Point.distance(curNode.point, pt) < Point.distance(curNearestPt, pt))
       curNearestPt = curNode.point;
-    curNearestPt = nearestAtNode(curNode.left, nextDir(curDir), pt, curNearestPt);
-    curNearestPt = nearestAtNode(curNode.right, nextDir(curDir), pt, curNearestPt);
+    int childIndex = chooseChild(curNode, curDir, pt);
+    KDTreeNode goodChild = childIndex == 0 ? curNode.left : curNode.right;
+    KDTreeNode badChild = childIndex == 0 ? curNode.right : curNode.left;
+    curNearestPt = nearestAtNode(goodChild, nextDir(curDir), pt, curNearestPt);
+    if (!shouldPrune(curNode, curDir, pt, curNearestPt)) {
+      curNearestPt = nearestAtNode(badChild, nextDir(curDir), pt, curNearestPt);
+    }
     return curNearestPt;
+  }
+
+  private boolean shouldPrune(KDTreeNode curNode, int curDir, Point pt, Point curNearestPt) {
+    if (curNearestPt == null) return false;
+    double dis = curDir == DIR_X ? curNode.point.getX() - pt.getX() : curNode.point.getY() - pt.getY(),
+      dis2 = dis * dis;
+    return dis2 > Point.distance(pt, curNearestPt);
   }
 }

@@ -1,4 +1,5 @@
 Insertion of 1000000 points into NaivePointSet takes 0.001 seconds.
 Insertion of 1000000 points into KDTree takes 0.94 seconds.
 Nearest query repeated 1000 times on NaivePointSet with 1000000 points takes 3.998 seconds.
-Nearest query repeated 1000 times on KDTree with 1000000 points takes 57.898 seconds. <-- full traversal
+Nearest query repeated 1000 times on KDTree with 1000000 points takes 57.898 seconds. <-- no pruning
+Nearest query repeated 1000 times on KDTree with 1000000 points takes 0.008 seconds. <-- with pruning
