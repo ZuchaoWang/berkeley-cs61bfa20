@@ -1,0 +1,22 @@
+Insertion of 10000 items into ArrayHeapMinPQ takes 0.01 seconds.
+Insertion of 20000 items into ArrayHeapMinPQ takes 0.006 seconds.
+Insertion of 40000 items into ArrayHeapMinPQ takes 0.009 seconds.
+Insertion of 80000 items into ArrayHeapMinPQ takes 0.016 seconds.
+Insertion of 160000 items into ArrayHeapMinPQ takes 0.03 seconds.
+Insertion of 320000 items into ArrayHeapMinPQ takes 0.066 seconds.
+Insertion of 640000 items into ArrayHeapMinPQ takes 0.134 seconds.
+Insertion of 1280000 items into ArrayHeapMinPQ takes 0.503 seconds.
+Insertion of 2560000 items into ArrayHeapMinPQ takes 1.135 seconds.
+Insertion of 5120000 items into ArrayHeapMinPQ takes 2.066 seconds.
+Insertion of 10240000 items into ArrayHeapMinPQ takes 3.882 seconds.
+Contain query repeated 10000 times on ArrayHeapMinPQ with 10240000 items takes 0.001 seconds.
+Contain query repeated 20000 times on ArrayHeapMinPQ with 10240000 items takes 0.001 seconds.
+Contain query repeated 40000 times on ArrayHeapMinPQ with 10240000 items takes 0.003 seconds.
+Contain query repeated 80000 times on ArrayHeapMinPQ with 10240000 items takes 0.006 seconds.
+Contain query repeated 160000 times on ArrayHeapMinPQ with 10240000 items takes 0.01 seconds.
+Contain query repeated 320000 times on ArrayHeapMinPQ with 10240000 items takes 0.022 seconds.
+Contain query repeated 640000 times on ArrayHeapMinPQ with 10240000 items takes 0.046 seconds.
+Contain query repeated 1280000 times on ArrayHeapMinPQ with 10240000 items takes 0.097 seconds.
+Contain query repeated 2560000 times on ArrayHeapMinPQ with 10240000 items takes 0.249 seconds.
+Contain query repeated 5120000 times on ArrayHeapMinPQ with 10240000 items takes 0.754 seconds.
+Contain query repeated 10240000 times on ArrayHeapMinPQ with 10240000 items takes 2.035 seconds.

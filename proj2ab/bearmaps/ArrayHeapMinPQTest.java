@@ -56,11 +56,15 @@ public class ArrayHeapMinPQTest {
 
     for (int i = 0; i < 2 * N; i++) {
       if (i < N) { // first N rounds
-        if (curStrs.size() > 0) op = rg.nextInt(8); // if not empty, add has 2 chances
-        else op = 6; // if empty, must add
+        if (curStrs.size() > 0)
+          op = rg.nextInt(8); // if not empty, add has 2 chances
+        else
+          op = 6; // if empty, must add
       } else { // second N rounds
-        if (curStrs.size() > 0) op = rg.nextInt(6); // if not empty, add has no chance
-        else break; // if empty, end test
+        if (curStrs.size() > 0)
+          op = rg.nextInt(6); // if not empty, add has no chance
+        else
+          break; // if empty, end test
       }
       switch (op) {
         case 0: // size
@@ -97,6 +101,53 @@ public class ArrayHeapMinPQTest {
           pq1.add(curStr, rdDb);
           pq2.add(curStr, rdDb);
       }
+    }
+  }
+
+  @Test
+  public void testTime() {
+    int[] Ns = { 10000, 20000, 40000, 80000, 160000, 320000, 640000, 1280000, 2560000, 5120000, 10240000 };
+    int maxN = Ns[Ns.length - 1];
+    String[] strs = new String[maxN];
+    double[] prios = new double[maxN];
+    String[] containStrs = new String[maxN];
+
+    int seed = 0;
+    double R = 10000;
+    Random rg = new Random(seed);
+    for (int i = 0; i < maxN; i++) {
+      strs[i] = "s" + i;
+      prios[i] = rg.nextDouble() * R;
+      containStrs[i] = "s" + rg.nextInt(maxN * 2);
+    }
+
+    ArrayHeapMinPQ<String> pq;
+    long tstart, tend;
+    for (int i = 0; i < Ns.length; i++) {
+      pq = new ArrayHeapMinPQ<String>();
+      tstart = System.currentTimeMillis();
+      for (int j = 0; j < Ns[i]; j++) {
+        pq.add(strs[j], prios[j]);
+      }
+      tend = System.currentTimeMillis();
+      System.out
+          .println(
+              "Insertion of " + Ns[i] + " items into ArrayHeapMinPQ takes " + (tend - tstart) / 1000.0 + " seconds.");
+    }
+    
+    for (int i = 0; i < Ns.length; i++) {
+      pq = new ArrayHeapMinPQ<String>();
+      for (int j = 0; j < Ns[i]; j++) {
+        pq.add(strs[j], prios[j]);
+      }
+      tstart = System.currentTimeMillis();
+      for (int j = 0; j < Ns[i]; j++) {
+        pq.contains(containStrs[j]);
+      }
+      tend = System.currentTimeMillis();
+      System.out
+          .println("Contain query repeated " + Ns[i] + " times on ArrayHeapMinPQ with " + maxN + " items takes "
+              + (tend - tstart) / 1000.0 + " seconds.");
     }
   }
 }
