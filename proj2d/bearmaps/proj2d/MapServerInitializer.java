@@ -22,7 +22,7 @@ public class MapServerInitializer {
     public static void initializeServer(Map<String, APIRouteHandler> apiHandlers){
 
         Constants.SEMANTIC_STREET_GRAPH = new AugmentedStreetMapGraph(Constants.OSM_DB_PATH);
-        staticFileLocation("/page");
+        staticFileLocation("/static/page");
         /* Allow for all origin requests (since this is not an authenticated server, we do not
          * care about CSRF).  */
         before((request, response) -> {
