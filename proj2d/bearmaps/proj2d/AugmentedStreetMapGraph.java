@@ -3,8 +3,14 @@ package bearmaps.proj2d;
 import bearmaps.proj2c.streetmap.StreetMapGraph;
 import bearmaps.proj2c.streetmap.Node;
 
+import bearmaps.proj2ab.PointSet;
+import bearmaps.proj2ab.KDTree;
+import bearmaps.proj2ab.Point;
+
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
@@ -15,11 +21,22 @@ import java.util.LinkedList;
  * @author Alan Yao, Josh Hug, ________
  */
 public class AugmentedStreetMapGraph extends StreetMapGraph {
+    PointSet nodePosSet;
+    HashMap<Point,Long> nodePosToId;
 
     public AugmentedStreetMapGraph(String dbPath) {
         super(dbPath);
-        // You might find it helpful to uncomment the line below:
-        // List<Node> nodes = this.getNodes();
+        
+        List<Point> nodePosList = new ArrayList<Point>();
+        nodePosToId = new HashMap<Point,Long>();
+        for (Node node: this.getNodes()) {
+            if (neighbors(node.id()).size() > 0) {
+                Point pos = lonLatToPos(node.lon(), node.lat());
+                nodePosList.add(pos);
+                nodePosToId.put(pos, node.id());
+            }
+        }
+        nodePosSet = new KDTree(nodePosList);
     }
 
 
@@ -31,7 +48,19 @@ public class AugmentedStreetMapGraph extends StreetMapGraph {
      * @return The id of the node in the graph closest to the target.
      */
     public long closest(double lon, double lat) {
-        return 0;
+        Point targetPos = lonLatToPos(lon, lat),
+            nearestPos = nodePosSet.nearest(targetPos.getX(), targetPos.getY());
+        return nodePosToId.get(nearestPos);
+    }
+
+    private Point lonLatToPos(double lon, double lat) {
+        // why this is wrong? maybe not accurate enough when assuming uniform scaling
+        // double xPos = lon * Math.cos(lat * Math.PI / 180);
+        // double yPos = lat;
+        // should use Web Mercator projection: https://en.wikipedia.org/wiki/Web_Mercator_projection
+        double xPos = Math.toRadians(lon) + Math.PI;
+        double yPos = Math.PI - Math.log(Math.tan(Math.PI/4 + Math.toRadians(lat)/2));
+        return new Point(xPos, yPos);
     }
 
 
