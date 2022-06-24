@@ -84,11 +84,60 @@ public class RasterAPIHandler extends APIRouteHandler<Map<String, Double>, Map<S
      */
     @Override
     public Map<String, Object> processRequest(Map<String, Double> requestParams, Response response) {
-        System.out.println("yo, wanna know the parameters given by the web browser? They are:");
-        System.out.println(requestParams);
+        // System.out.println("yo, wanna know the parameters given by the web browser? They are:");
+        // System.out.println(requestParams);
+        
+        double lrlon = requestParams.get("lrlon"),
+            lrlat = requestParams.get("lrlat"),
+            ullon = requestParams.get("ullon"),
+            ullat = requestParams.get("ullat"),
+            w = requestParams.get("w"),
+            h = requestParams.get("h");
+
+        if (ullon >= lrlon || ullat <= lrlat || 
+            ullon >= Constants.ROOT_LRLON || lrlon <= Constants.ROOT_ULLON ||
+            ullat <= Constants.ROOT_LRLAT || lrlat >= Constants.ROOT_ULLAT) {
+            return queryFail();
+        }
+
+        double lonDPP = (lrlon - ullon) / w,
+            lonDPP0 = (Constants.ROOT_LRLON - Constants.ROOT_ULLON) / Constants.TILE_SIZE,
+            rawDepth = Math.log(lonDPP0 / lonDPP) / Math.log(2),
+            ullon_perc = (ullon - Constants.ROOT_ULLON) / (Constants.ROOT_LRLON - Constants.ROOT_ULLON),
+            lrlon_perc = (lrlon - Constants.ROOT_ULLON) / (Constants.ROOT_LRLON - Constants.ROOT_ULLON),
+            ullat_perc = (Constants.ROOT_ULLAT - ullat) / (Constants.ROOT_ULLAT - Constants.ROOT_LRLAT),
+            lrlat_perc = (Constants.ROOT_ULLAT - lrlat) / (Constants.ROOT_ULLAT - Constants.ROOT_LRLAT);
+
+        int depth = Math.max(0, Math.min(7, (int)Math.ceil(rawDepth))),
+            tileCount = (int)Math.pow(2.0, depth),
+            raster_ul_lon_index = (int) Math.max(0.0, Math.min((double)(tileCount - 1), ullon_perc * tileCount)),
+            raster_ul_lat_index = (int) Math.max(0.0, Math.min((double)(tileCount - 1), ullat_perc * tileCount)),
+            raster_lr_lon_index = (int) Math.max(0.0, Math.min((double)(tileCount - 1), lrlon_perc * tileCount)),
+            raster_lr_lat_index = (int) Math.max(0.0, Math.min((double)(tileCount - 1), lrlat_perc * tileCount));
+
+        double raster_ul_lon = Constants.ROOT_ULLON + (Constants.ROOT_LRLON - Constants.ROOT_ULLON) * raster_ul_lon_index / tileCount,
+            raster_ul_lat = Constants.ROOT_ULLAT - (Constants.ROOT_ULLAT - Constants.ROOT_LRLAT) * raster_ul_lat_index / tileCount,
+            raster_lr_lon = Constants.ROOT_ULLON + (Constants.ROOT_LRLON - Constants.ROOT_ULLON) * (raster_lr_lon_index + 1) / tileCount,
+            raster_lr_lat = Constants.ROOT_ULLAT - (Constants.ROOT_ULLAT - Constants.ROOT_LRLAT) * (raster_lr_lat_index + 1) / tileCount;
+
+        String[][] render_grid = new String[raster_lr_lat_index-raster_ul_lat_index+1][raster_lr_lon_index-raster_ul_lon_index+1];
+        for (int i=0; i<=raster_lr_lat_index-raster_ul_lat_index; i++) {
+            for (int j=0; j<=raster_lr_lon_index-raster_ul_lon_index; j++) {
+                render_grid[i][j] = "d" + depth + "_x" + (j+raster_ul_lon_index) + "_y" + (i+raster_ul_lat_index) + ".png";
+            }
+        }
+
         Map<String, Object> results = new HashMap<>();
-        System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
-                + "your browser.");
+        results.put("render_grid", render_grid);
+        results.put("raster_ul_lon", raster_ul_lon);
+        results.put("raster_ul_lat", raster_ul_lat);
+        results.put("raster_lr_lon", raster_lr_lon);
+        results.put("raster_lr_lat", raster_lr_lat);
+        results.put("depth", depth);
+        results.put("query_success", true);
+        // System.out.println("Since you haven't implemented RasterAPIHandler.processRequest, nothing is displayed in "
+        //         + "your browser.");
+
         return results;
     }
 
