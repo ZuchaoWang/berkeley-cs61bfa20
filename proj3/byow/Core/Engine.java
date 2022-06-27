@@ -1,5 +1,9 @@
 package byow.Core;
 
+import byow.Core.View.ViewController;
+import byow.InputDemo.InputSource;
+import byow.InputDemo.KeyboardInputSource;
+import byow.InputDemo.StringInputDevice;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 
@@ -8,12 +12,15 @@ public class Engine {
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
+    public static final int HUDHEIGHT = 1;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+      InputSource inputSource = new KeyboardInputSource();
+      interactWithInput(inputSource);
     }
 
     /**
@@ -46,7 +53,16 @@ public class Engine {
         // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
         // that works for many different input types.
 
-        TETile[][] finalWorldFrame = null;
+        InputSource inputSource = new StringInputDevice(input);
+        TETile[][] finalWorldFrame = interactWithInput(inputSource);
         return finalWorldFrame;
+    }
+
+    private TETile[][] interactWithInput(InputSource inputSource) {
+        SharedState sharedState = new SharedState(WIDTH, HEIGHT, HUDHEIGHT);
+        ViewController viewController = new ViewController();
+        ter.initialize(sharedState.worldWidth, sharedState.worldHeight + sharedState.hudHeight);
+        viewController.interact(inputSource, sharedState, ter);
+        return sharedState.world;
     }
 }
