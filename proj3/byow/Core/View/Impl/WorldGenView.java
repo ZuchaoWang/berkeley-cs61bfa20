@@ -14,7 +14,7 @@ public class WorldGenView implements BaseView {
 
   @Override
   public ViewType interact(InputSource inputSource, SharedState sharedState, TERenderer terenderer) {
-    seedStr = new String("");
+    seedStr = "";
     render(sharedState, terenderer);
     while (inputSource.possibleNextInput()) {
       char c = Character.toLowerCase(inputSource.getNextKey());
@@ -42,9 +42,14 @@ public class WorldGenView implements BaseView {
   }
 
   private ViewType handleSeedEnd(SharedState sharedState) {
-    sharedState.generateWorld(getSeedInt());
-    sharedState.generateAvatarPos();
-    return ViewType.GAMEPLAY;
+    try {
+      sharedState.generateWorld(getSeedInt());
+      sharedState.generateAvatarPos();
+      return ViewType.GAMEPLAY;
+    } catch(Exception e) {
+      seedStr = "";
+      return ViewType.WORLDGEN;
+    }
   }
 
   private ViewType handleSeedDigit(char c) {
@@ -52,7 +57,7 @@ public class WorldGenView implements BaseView {
     return ViewType.WORLDGEN;
   }
 
-  private int getSeedInt() {
-    return Integer.parseInt(seedStr, 10);
+  private long getSeedInt() {
+    return Long.parseLong(seedStr, 10);
   }
 }
