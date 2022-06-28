@@ -45,6 +45,8 @@ public class WorldFloorGen {
   }
 
   private static BSPNode splitWorld(int roomLeft, int roomRight, int roomBottom, int roomTop, Random randGen) {
+    // split world recursively into BSPNodes, must be at least of size = minRoomSize + minRoomInnerMargin
+    // sibling BSPNodes must be separated at x or y direction for a distance = minRoomInterMargin
     BSPNode parent = new BSPNode(roomLeft, roomRight, roomBottom, roomTop);
     boolean canSplitX = canSplit(roomRight - roomLeft + 1, randGen),
         canSplitY = canSplit(roomTop - roomBottom + 1, randGen);
@@ -100,7 +102,7 @@ public class WorldFloorGen {
 
   private static void generateRooms(BSPNode parent, Random randGen) {
     if (parent.isLeaf) { // leaf node
-      // ensure room margin
+      // ensure minRoomInnerMargin by first shrink it, this is mainly to dislocate room
       if (randGen.nextDouble() < 0.5)
         parent.roomLeft += minRoomInnerMargin;
       else
@@ -109,7 +111,7 @@ public class WorldFloorGen {
         parent.roomBottom += minRoomInnerMargin;
       else
         parent.roomTop -= minRoomInnerMargin;
-      // continue to shrink the room randomly
+      // continue to shrink the room randomly, but ensure its size is in [minRoomSize, maxRoomSize]
       int roomWidth = minRoomSize
           + randGen.nextInt(Math.min(maxRoomSize, parent.roomRight - parent.roomLeft + 1) - minRoomSize + 1);
       parent.roomLeft += randGen.nextInt(parent.roomRight - parent.roomLeft + 1 - roomWidth + 1);
@@ -118,7 +120,7 @@ public class WorldFloorGen {
           + randGen.nextInt(Math.min(maxRoomSize, parent.roomTop - parent.roomBottom + 1) - minRoomSize + 1);
       parent.roomBottom += randGen.nextInt(parent.roomTop - parent.roomBottom + 1 - roomHeight + 1);
       parent.roomTop = parent.roomBottom + roomHeight - 1;
-    } else {
+    } else { // for non leaf
       // generate room for each children
       generateRooms(parent.leftChild, randGen);
       generateRooms(parent.rightChild, randGen);
@@ -166,6 +168,7 @@ public class WorldFloorGen {
   }
 
   private static boolean[][] rasterizeInit(BSPNode root, int worldWidth, int worldHeight) {
+    // create an empty world
     boolean[][] world = new boolean[worldWidth][worldHeight];
     for (int x = 0; x < worldWidth; x++) {
       for (int y = 0; y < worldHeight; y++) {
@@ -176,6 +179,7 @@ public class WorldFloorGen {
   }
 
   private static void rasterizeRoom(BSPNode parent, boolean[][] world) {
+    // add leaf rooms to the world
     if (parent.isLeaf) {
       for (int x = parent.roomLeft; x <= parent.roomRight; x++) {
         for (int y = parent.roomBottom; y <= parent.roomTop; y++) {
@@ -189,6 +193,7 @@ public class WorldFloorGen {
   }
 
   private static void rasterizeHallway(BSPNode parent, boolean[][] world) {
+    // add hallways in non-leaf node to the world
     if (parent.isLeaf) {
       return;
     } else {
@@ -202,6 +207,7 @@ public class WorldFloorGen {
   }
 
   private static void rasterizeHallwayConnection(BSPNode parent, BSPNode current, boolean[][] world) {
+    // find direction for extensiokn of hallway pivot point
     int xdir = 0;
     if (parent.hallwayPivotX > current.roomRight)
       xdir = -1;
@@ -212,6 +218,7 @@ public class WorldFloorGen {
       ydir = -1;
     else if (parent.hallwayPivotY < current.roomBottom)
       ydir = 1;
+    // extend pivot point along the direction, until it connects with BSPNode current
     int hallwayX = parent.hallwayPivotX,
         hallwayY = parent.hallwayPivotY;
     while (!isRasterizeHallwayConnected(hallwayX + xdir, hallwayY + ydir, current, world) // front

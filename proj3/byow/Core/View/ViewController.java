@@ -9,20 +9,22 @@ import byow.TileEngine.TERenderer;
 
 public class ViewController {
   private BaseView currentView;
-  
+
   public ViewController() {
     currentView = createView(ViewType.WELCOME);
   }
 
   public void interact(InputSource inputSource, SharedState sharedState, TERenderer terender) {
-    while(currentView != null) {
+    while (true) {
       ViewType nextViewType = currentView.interact(inputSource, sharedState, terender);
+      if (nextViewType == null)
+        break;
       currentView = createView(nextViewType);
     }
   }
-  
+
   private BaseView createView(ViewType type) {
-    switch(type) {
+    switch (type) {
       case WELCOME:
         return new WelcomeView();
       case ENCOUNTER:
