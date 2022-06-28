@@ -19,7 +19,7 @@ public class GamePlayView implements BaseView {
   private void render(SharedState sharedState, TERenderer terenderer) {
     terenderer.renderFrame(sharedState.world);
     StdDraw.setPenColor(new Color(255, 255, 255));
-    StdDraw.text(sharedState.worldWidth/2, sharedState.worldHeight + 0.5, "Game Play, Use A/S/D/W to Move");
+    StdDraw.textLeft(0, sharedState.worldHeight + 0.5 * sharedState.hudHeight, "Game Play: Press A/S/D/W to Move");
     StdDraw.show();
   }
 }

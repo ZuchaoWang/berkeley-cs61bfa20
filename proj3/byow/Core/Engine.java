@@ -12,7 +12,7 @@ public class Engine {
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
-    public static final int HUDHEIGHT = 1;
+    public static final int HUDHEIGHT = 2;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
