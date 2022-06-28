@@ -61,7 +61,7 @@ public class WorldGen {
         }
       }
     }
-    int choice = randGen.nextInt(candidateXs.size());
+    int choice = RandomUtils.uniform(randGen, candidateXs.size());
     world[candidateXs.get(choice)][candidateYs.get(choice)] = Tileset.LOCKED_DOOR;
   }
 

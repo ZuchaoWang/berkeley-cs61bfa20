@@ -30,6 +30,28 @@ public class WorldFloorGen {
       rightChild = null;
       isLeaf = true;
     }
+
+    public int roomWidth() {
+      return roomRight - roomLeft + 1;
+    }
+
+    public int roomHeight() {
+      return roomTop - roomBottom + 1;
+    }
+
+    public void refineBoundingBox() {
+      if (!isLeaf) {
+        roomLeft = Math.min(leftChild.roomLeft, rightChild.roomLeft);
+        roomRight = Math.max(leftChild.roomRight, rightChild.roomRight);
+        roomBottom = Math.min(leftChild.roomBottom, rightChild.roomBottom);
+        roomTop = Math.max(leftChild.roomTop, rightChild.roomTop);
+      }
+    }
+
+    public boolean containsPoint(int x, int y) {
+      return x >= roomLeft && x <= roomRight
+          && y >= roomBottom && y <= roomTop;
+    }
   }
 
   // ref:
@@ -45,15 +67,17 @@ public class WorldFloorGen {
   }
 
   private static BSPNode splitWorld(int roomLeft, int roomRight, int roomBottom, int roomTop, Random randGen) {
-    // split world recursively into BSPNodes, must be at least of size = minRoomSize + minRoomInnerMargin
-    // sibling BSPNodes must be separated at x or y direction for a distance = minRoomInterMargin
+    // split world recursively into BSPNodes, must be at least of size = minRoomSize
+    // + minRoomInnerMargin
+    // sibling BSPNodes must be separated at x or y direction for a distance =
+    // minRoomInterMargin
     BSPNode parent = new BSPNode(roomLeft, roomRight, roomBottom, roomTop);
-    boolean canSplitX = canSplit(roomRight - roomLeft + 1, randGen),
-        canSplitY = canSplit(roomTop - roomBottom + 1, randGen);
+    boolean canSplitX = canSplit(parent.roomWidth(), randGen),
+        canSplitY = canSplit(parent.roomHeight(), randGen);
     if (!canSplitX && !canSplitY) {
       return parent;
     } else if (canSplitX && canSplitY) {
-      if (randGen.nextDouble() < 0.5) {
+      if (RandomUtils.bernoulli(randGen)) {
         return splitWorldAtX(parent, randGen);
       } else {
         return splitWorldAtY(parent, randGen);
@@ -71,7 +95,7 @@ public class WorldFloorGen {
       return false;
     } else if (roomSize < 2 * (maxRoomSize + minRoomInnerMargin) + minRoomInterMargin) {
       // if room large enough, we can split or not split
-      return randGen.nextDouble() < 0.5;
+      return RandomUtils.bernoulli(randGen);
     } else {
       // if room is too large, we must split
       return true;
@@ -79,9 +103,7 @@ public class WorldFloorGen {
   }
 
   private static BSPNode splitWorldAtX(BSPNode parent, Random randGen) {
-    int splitMin = parent.roomLeft + minRoomSize + minRoomInnerMargin,
-        splitMax = parent.roomRight - minRoomSize - minRoomInnerMargin - minRoomInterMargin + 1,
-        splitPos = splitMin + randGen.nextInt(splitMax - splitMin + 1);
+    int splitPos = sampleSplitPos(parent.roomLeft, parent.roomRight, randGen);
     parent.isLeaf = false;
     parent.leftChild = splitWorld(parent.roomLeft, splitPos - 1, parent.roomBottom, parent.roomTop, randGen);
     parent.rightChild = splitWorld(splitPos + minRoomInterMargin, parent.roomRight, parent.roomBottom, parent.roomTop,
@@ -90,9 +112,7 @@ public class WorldFloorGen {
   }
 
   private static BSPNode splitWorldAtY(BSPNode parent, Random randGen) {
-    int splitMin = parent.roomBottom + minRoomSize + minRoomInnerMargin,
-        splitMax = parent.roomTop - minRoomSize - minRoomInnerMargin - minRoomInterMargin + 1,
-        splitPos = splitMin + randGen.nextInt(splitMax - splitMin + 1);
+    int splitPos = sampleSplitPos(parent.roomBottom, parent.roomTop, randGen);
     parent.isLeaf = false;
     parent.leftChild = splitWorld(parent.roomLeft, parent.roomRight, parent.roomBottom, splitPos - 1, randGen);
     parent.rightChild = splitWorld(parent.roomLeft, parent.roomRight, splitPos + minRoomInterMargin, parent.roomTop,
@@ -100,35 +120,39 @@ public class WorldFloorGen {
     return parent;
   }
 
+  private static int sampleSplitPos(int start, int end, Random randGen) {
+    int splitMin = start + minRoomSize + minRoomInnerMargin,
+        splitMax = end - minRoomSize - minRoomInnerMargin - minRoomInterMargin + 1,
+        splitPos = RandomUtils.uniform(randGen, splitMin, splitMax + 1);
+    return splitPos;
+  }
+
   private static void generateRooms(BSPNode parent, Random randGen) {
     if (parent.isLeaf) { // leaf node
-      // ensure minRoomInnerMargin by first shrink it, this is mainly to dislocate room
-      if (randGen.nextDouble() < 0.5)
+      // ensure minRoomInnerMargin by first shrink it, this is mainly to dislocate
+      // room
+      if (RandomUtils.bernoulli(randGen))
         parent.roomLeft += minRoomInnerMargin;
       else
         parent.roomRight -= minRoomInnerMargin;
-      if (randGen.nextDouble() < 0.5)
+      if (RandomUtils.bernoulli(randGen))
         parent.roomBottom += minRoomInnerMargin;
       else
         parent.roomTop -= minRoomInnerMargin;
-      // continue to shrink the room randomly, but ensure its size is in [minRoomSize, maxRoomSize]
-      int roomWidth = minRoomSize
-          + randGen.nextInt(Math.min(maxRoomSize, parent.roomRight - parent.roomLeft + 1) - minRoomSize + 1);
-      parent.roomLeft += randGen.nextInt(parent.roomRight - parent.roomLeft + 1 - roomWidth + 1);
-      parent.roomRight = parent.roomLeft + roomWidth - 1;
-      int roomHeight = minRoomSize
-          + randGen.nextInt(Math.min(maxRoomSize, parent.roomTop - parent.roomBottom + 1) - minRoomSize + 1);
-      parent.roomBottom += randGen.nextInt(parent.roomTop - parent.roomBottom + 1 - roomHeight + 1);
-      parent.roomTop = parent.roomBottom + roomHeight - 1;
+      // continue to shrink the room randomly, but ensure its size is in [minRoomSize,
+      // maxRoomSize]
+      int nextRoomWidth = RandomUtils.uniform(randGen, minRoomSize, Math.min(maxRoomSize, parent.roomWidth()) + 1);
+      parent.roomLeft += RandomUtils.uniform(randGen, parent.roomWidth() - nextRoomWidth + 1);
+      parent.roomRight = parent.roomLeft + nextRoomWidth - 1;
+      int nextRoomHeight = RandomUtils.uniform(randGen, minRoomSize, Math.min(maxRoomSize, parent.roomHeight()) + 1);
+      parent.roomBottom += RandomUtils.uniform(randGen, parent.roomHeight() - nextRoomHeight + 1);
+      parent.roomTop = parent.roomBottom + nextRoomHeight - 1;
     } else { // for non leaf
       // generate room for each children
       generateRooms(parent.leftChild, randGen);
       generateRooms(parent.rightChild, randGen);
       // refine parent bounding box
-      parent.roomLeft = Math.min(parent.leftChild.roomLeft, parent.rightChild.roomLeft);
-      parent.roomRight = Math.max(parent.leftChild.roomRight, parent.rightChild.roomRight);
-      parent.roomBottom = Math.min(parent.leftChild.roomBottom, parent.rightChild.roomBottom);
-      parent.roomTop = Math.max(parent.leftChild.roomTop, parent.rightChild.roomTop);
+      parent.refineBoundingBox();
     }
   }
 
@@ -146,22 +170,22 @@ public class WorldFloorGen {
       boolean xFaceToFace = minPivotX <= maxPivotX,
           yFaceToFace = minPivotY <= maxPivotY;
       if (xFaceToFace) { // then cannot be yFaceToFace
-        parent.hallwayPivotX = minPivotX + randGen.nextInt(maxPivotX - minPivotX + 1);
+        parent.hallwayPivotX = RandomUtils.uniform(randGen, minPivotX, maxPivotX + 1);
         parent.hallwayPivotY = (minPivotY + maxPivotY) / 2;
       } else if (yFaceToFace) { // then cannot be xFaceToFace
         parent.hallwayPivotX = (minPivotX + maxPivotX) / 2;
-        parent.hallwayPivotY = minPivotY + randGen.nextInt(maxPivotY - minPivotY + 1);
+        parent.hallwayPivotY = RandomUtils.uniform(randGen, minPivotY, maxPivotY + 1);
       } else { // neither xFaceToFace nor yFaceToFace
-        if (randGen.nextDouble() < 0.5) {
-          parent.hallwayPivotX = parent.leftChild.roomLeft
-              + randGen.nextInt(parent.leftChild.roomRight - parent.leftChild.roomLeft + 1);
-          parent.hallwayPivotY = parent.rightChild.roomBottom
-              + randGen.nextInt(parent.rightChild.roomTop - parent.rightChild.roomBottom + 1);
+        if (RandomUtils.bernoulli(randGen)) {
+          parent.hallwayPivotX = RandomUtils.uniform(randGen, parent.leftChild.roomLeft,
+              parent.leftChild.roomRight + 1);
+          parent.hallwayPivotY = RandomUtils.uniform(randGen, parent.rightChild.roomBottom,
+              parent.rightChild.roomTop + 1);
         } else {
-          parent.hallwayPivotX = parent.rightChild.roomLeft
-              + randGen.nextInt(parent.rightChild.roomRight - parent.rightChild.roomLeft + 1);
-          parent.hallwayPivotY = parent.leftChild.roomBottom
-              + randGen.nextInt(parent.leftChild.roomTop - parent.leftChild.roomBottom + 1);
+          parent.hallwayPivotX = RandomUtils.uniform(randGen, parent.rightChild.roomLeft,
+              parent.rightChild.roomRight + 1);
+          parent.hallwayPivotY = RandomUtils.uniform(randGen, parent.leftChild.roomBottom,
+              parent.leftChild.roomTop + 1);
         }
       }
     }
@@ -218,7 +242,8 @@ public class WorldFloorGen {
       ydir = -1;
     else if (parent.hallwayPivotY < current.roomBottom)
       ydir = 1;
-    // extend pivot point along the direction, until it connects with BSPNode current
+    // extend pivot point along the direction, until it connects with BSPNode
+    // current
     int hallwayX = parent.hallwayPivotX,
         hallwayY = parent.hallwayPivotY;
     while (!isRasterizeHallwayConnected(hallwayX + xdir, hallwayY + ydir, current, world) // front
@@ -232,8 +257,6 @@ public class WorldFloorGen {
   }
 
   private static boolean isRasterizeHallwayConnected(int hallwayX, int hallwayY, BSPNode current, boolean[][] world) {
-    return world[hallwayX][hallwayY]
-        && hallwayX >= current.roomLeft && hallwayX <= current.roomRight
-        && hallwayY >= current.roomBottom && hallwayY <= current.roomTop;
+    return world[hallwayX][hallwayY] && current.containsPoint(hallwayX, hallwayY);
   }
 }
