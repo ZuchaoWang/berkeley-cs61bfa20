@@ -16,6 +16,7 @@ public class WorldFloorGen {
     public int hallwayPivotY;
     public BSPNode leftChild;
     public BSPNode rightChild;
+    public boolean isLeaf;
 
     public BSPNode(int l, int r, int b, int t) {
       roomLeft = l;
@@ -26,6 +27,7 @@ public class WorldFloorGen {
       hallwayPivotY = 0;
       leftChild = null;
       rightChild = null;
+      isLeaf = true;
     }
   }
 
@@ -34,8 +36,11 @@ public class WorldFloorGen {
     Random randGen = new Random(seed);
     BSPNode root = splitWorld(1, worldWidth - 2, 1, worldHeight - 2, randGen);
     generateRooms(root, randGen);
-    // generateHallways(root, randGen);
-    return rasterizeWorld(root, worldWidth, worldHeight);
+    generateHallways(root, randGen);
+    boolean[][] world = rasterizeInit(root, worldWidth, worldHeight);
+    rasterizeRoom(root, world);
+    rasterizeHallway(root, world);
+    return world;
   }
 
   private static BSPNode splitWorld(int roomLeft, int roomRight, int roomBottom, int roomTop, Random randGen) {
@@ -74,6 +79,7 @@ public class WorldFloorGen {
     int splitMin = parent.roomLeft + minRoomSize + minRoomMargin,
       splitMax = parent.roomRight - minRoomSize - minRoomMargin,
       splitPos = splitMin + randGen.nextInt(splitMax - splitMin + 1);
+    parent.isLeaf = false;
     parent.leftChild = splitWorld(parent.roomLeft, splitPos - 1, parent.roomBottom, parent.roomTop, randGen);
     parent.rightChild = splitWorld(splitPos + 1, parent.roomRight, parent.roomBottom, parent.roomTop, randGen);
     return parent;
@@ -83,13 +89,14 @@ public class WorldFloorGen {
     int splitMin = parent.roomBottom + minRoomSize + minRoomMargin,
       splitMax = parent.roomTop - minRoomSize - minRoomMargin,
       splitPos = splitMin + randGen.nextInt(splitMax - splitMin + 1);
+    parent.isLeaf = false;
     parent.leftChild = splitWorld(parent.roomLeft, parent.roomRight, parent.roomBottom, splitPos - 1, randGen);
     parent.rightChild = splitWorld(parent.roomLeft, parent.roomRight, splitPos + 1, parent.roomTop, randGen);
     return parent;
   }
 
   private static void generateRooms(BSPNode parent, Random randGen) {
-    if (parent.leftChild == null) { // leaf node
+    if (parent.isLeaf) { // leaf node
       // ensure room margin
       if (randGen.nextDouble() < 0.5) parent.roomLeft += minRoomMargin;
       else parent.roomRight -= minRoomMargin;
@@ -115,22 +122,48 @@ public class WorldFloorGen {
   }
 
   private static void generateHallways(BSPNode parent, Random randGen) {
-
+    if (parent.isLeaf) {
+      return; // do nothing for leaf
+    } else {
+      generateHallways(parent.leftChild, randGen);
+      generateHallways(parent.rightChild, randGen);
+      // now find the connection point of leftChild and rightChild
+      int minPivotX = Math.max(parent.leftChild.roomLeft, parent.rightChild.roomLeft),
+        maxPivotX = Math.min(parent.leftChild.roomRight, parent.rightChild.roomRight),
+        minPivotY = Math.max(parent.leftChild.roomBottom, parent.rightChild.roomBottom),
+        maxPivotY = Math.min(parent.leftChild.roomTop, parent.rightChild.roomTop);
+      boolean xFaceToFace = minPivotX <= maxPivotX,
+        yFaceToFace = minPivotY <= maxPivotY;
+      if (xFaceToFace) { // then cannot be yFaceToFace
+        parent.hallwayPivotX = minPivotX + randGen.nextInt(maxPivotX-minPivotX+1);
+        parent.hallwayPivotY = (minPivotY + maxPivotY) / 2;
+      } else if (yFaceToFace) { // then cannot be xFaceToFace
+        parent.hallwayPivotX = (minPivotX + maxPivotX) / 2;
+        parent.hallwayPivotY = minPivotY + randGen.nextInt(maxPivotY-minPivotY+1);
+      } else { // neither xFaceToFace nor yFaceToFace
+        if (randGen.nextDouble() < 0.5) {
+          parent.hallwayPivotX = parent.leftChild.roomLeft + randGen.nextInt(parent.leftChild.roomRight-parent.leftChild.roomLeft+1);
+          parent.hallwayPivotY = parent.rightChild.roomBottom + randGen.nextInt(parent.rightChild.roomTop-parent.rightChild.roomBottom+1);
+        } else {
+          parent.hallwayPivotX = parent.rightChild.roomLeft + randGen.nextInt(parent.rightChild.roomRight-parent.rightChild.roomLeft+1);
+          parent.hallwayPivotY = parent.leftChild.roomBottom + randGen.nextInt(parent.leftChild.roomTop-parent.leftChild.roomBottom+1);
+        }
+      }
+    }
   }
 
-  private static boolean[][] rasterizeWorld(BSPNode root, int worldWidth, int worldHeight) {
+  private static boolean[][] rasterizeInit(BSPNode root, int worldWidth, int worldHeight) {
     boolean[][] world = new boolean[worldWidth][worldHeight];
     for (int x = 0; x < worldWidth; x++) {
       for (int y = 0; y < worldHeight; y++) {
         world[x][y] = false;
       }
     }
-    rasterizeRoom(root, world);
     return world;
   }
 
   private static void rasterizeRoom(BSPNode parent, boolean[][] world) {
-    if (parent.leftChild == null) {
+    if (parent.isLeaf) {
       for (int x = parent.roomLeft; x <= parent.roomRight; x++) {
         for (int y = parent.roomBottom; y <= parent.roomTop; y++) {
           world[x][y] = true;
@@ -139,6 +172,35 @@ public class WorldFloorGen {
     } else {
       rasterizeRoom(parent.leftChild, world);
       rasterizeRoom(parent.rightChild, world);
+    }
+  }
+
+  private static void rasterizeHallway(BSPNode parent, boolean[][] world) {
+    if (parent.isLeaf) {
+      return;
+    } else {
+      rasterizeHallway(parent.leftChild, world);
+      rasterizeHallway(parent.rightChild, world);
+      // connect leftChild and rightChild
+      world[parent.hallwayPivotX][parent.hallwayPivotY] = true;
+      rasterizeHallwayConnection(parent, parent.leftChild, world);
+      rasterizeHallwayConnection(parent, parent.rightChild, world);
+    }
+  }
+
+  private static void rasterizeHallwayConnection(BSPNode parent, BSPNode current, boolean[][] world) {
+    int xdir = 0;
+    if (parent.hallwayPivotX > current.roomRight) xdir = -1;
+    else if (parent.hallwayPivotX < current.roomLeft) xdir = 1;
+    int ydir = 0;
+    if (parent.hallwayPivotY > current.roomTop) ydir = -1;
+    else if (parent.hallwayPivotY < current.roomBottom) ydir = 1;
+    int hallwayX = parent.hallwayPivotX + xdir,
+      hallwayY = parent.hallwayPivotY + ydir;
+    while (world[hallwayX][hallwayY] == false) {
+      world[hallwayX][hallwayY] = true;
+      hallwayX += xdir;
+      hallwayY += ydir;
     }
   }
 }

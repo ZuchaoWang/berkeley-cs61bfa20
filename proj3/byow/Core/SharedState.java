@@ -30,7 +30,7 @@ public class SharedState {
   }
 
   public void generateWorld(long seed) {
-    WorldGen.generateWorld(world, worldWidth, worldHeight, seed);
+    WorldGen.generateWorld(world, seed);
   }
 
   public void generateAvatarPos() {}
