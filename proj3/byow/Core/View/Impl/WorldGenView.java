@@ -42,14 +42,9 @@ public class WorldGenView implements BaseView {
   }
 
   private ViewType handleSeedEnd(SharedState sharedState) {
-    try {
-      sharedState.generateWorld(getSeedInt());
-      sharedState.generateAvatarPos();
-      return ViewType.GAMEPLAY;
-    } catch(Exception e) {
-      seedStr = "";
-      return ViewType.WORLDGEN;
-    }
+    sharedState.generateWorld(getSeedLong());
+    sharedState.generateAvatarPos();
+    return ViewType.GAMEPLAY;
   }
 
   private ViewType handleSeedDigit(char c) {
@@ -57,7 +52,7 @@ public class WorldGenView implements BaseView {
     return ViewType.WORLDGEN;
   }
 
-  private long getSeedInt() {
+  private long getSeedLong() {
     return Long.parseLong(seedStr, 10);
   }
 }

@@ -1,6 +1,7 @@
 package byow.Core.View;
 
 import byow.Core.SharedState;
+import byow.Core.View.Impl.GamePlayView;
 import byow.Core.View.Impl.WelcomeView;
 import byow.Core.View.Impl.WorldGenView;
 import byow.InputDemo.InputSource;
@@ -26,6 +27,7 @@ public class ViewController {
         return new WelcomeView();
       case ENCOUNTER:
       case GAMEPLAY:
+        return new GamePlayView();
       case WORLDGEN:
         return new WorldGenView();
       case YOUWIN:

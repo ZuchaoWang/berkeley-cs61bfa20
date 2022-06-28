@@ -24,7 +24,7 @@ public class SharedState {
     world = new TETile[worldWidth][worldHeight];
     for (int x = 0; x < worldWidth; x += 1) {
         for (int y = 0; y < worldHeight; y += 1) {
-          world[x][y] = Tileset.NOTHING;
+            world[x][y] = Tileset.NOTHING;
         }
     }
   }
