@@ -1,9 +1,12 @@
 package byow.Core.View;
 
 import byow.Core.SharedState;
+import byow.Core.View.Impl.EncounterView;
 import byow.Core.View.Impl.GamePlayView;
+import byow.Core.View.Impl.QuitView;
 import byow.Core.View.Impl.WelcomeView;
 import byow.Core.View.Impl.WorldGenView;
+import byow.Core.View.Impl.YouWinView;
 import byow.InputDemo.InputSource;
 import byow.TileEngine.TERenderer;
 
@@ -28,12 +31,15 @@ public class ViewController {
       case WELCOME:
         return new WelcomeView();
       case ENCOUNTER:
+        return new EncounterView();
       case GAMEPLAY:
         return new GamePlayView();
       case WORLDGEN:
         return new WorldGenView();
       case YOUWIN:
+        return new YouWinView();
       case QUIT:
+        return new QuitView();
       default:
         return null;
     }

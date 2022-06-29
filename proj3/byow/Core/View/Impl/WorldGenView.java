@@ -1,6 +1,7 @@
 package byow.Core.View.Impl;
 
 import java.awt.Color;
+import java.util.Random;
 
 import byow.Core.SharedState;
 import byow.Core.View.BaseView;
@@ -42,8 +43,9 @@ public class WorldGenView implements BaseView {
   }
 
   private ViewType handleSeedEnd(SharedState sharedState) {
-    sharedState.generateWorld(getSeedLong());
-    sharedState.generateAvatarPos();
+    Random randGen = new Random(getSeedLong());
+    sharedState.generateWorld(randGen);
+    sharedState.generateAvatarPos(randGen);
     return ViewType.GAMEPLAY;
   }
 
