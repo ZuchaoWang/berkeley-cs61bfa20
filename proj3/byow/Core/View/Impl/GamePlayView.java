@@ -14,6 +14,12 @@ import edu.princeton.cs.introcs.StdDraw;
 public class GamePlayView implements BaseView {
   // let's ignore mouse event, because we cannot use current inputSource implementation with getNextKey being blocking
 
+  private boolean lastKeyIsColon;
+
+  public GamePlayView() {
+    lastKeyIsColon = false;
+  }
+
   @Override
   public ViewType interact(InputSource inputSource, SharedState sharedState, TERenderer terenderer) {
     render(sharedState, terenderer);
@@ -32,10 +38,13 @@ public class GamePlayView implements BaseView {
     else if (c == 's') nextViewType = moveAvatar(0, -1, sharedState);
     else if (c == 'd') nextViewType = moveAvatar(1, 0, sharedState);
     else if (c == 'w') nextViewType = moveAvatar(0, 1, sharedState);
+    else if (c == ':') nextViewType = handleColon(sharedState);
+    else if (c == 'q') nextViewType = handleQuit(sharedState);
     return nextViewType;
   }
 
   private ViewType moveAvatar(int dx, int dy, SharedState sharedState) {
+    lastKeyIsColon = false;
     if (sharedState.canAvatarMove(dx, dy)) {
       sharedState.moveAvatar(dx, dy);
       TETile curTile = sharedState.getAvatarCurrentTile();
@@ -44,6 +53,20 @@ public class GamePlayView implements BaseView {
       else if (curTile.character() == Tileset.FLOWER.character()) return ViewType.ENCOUNTER;
     }
     return ViewType.GAMEPLAY;
+  }
+
+  private ViewType handleColon(SharedState sharedState) {
+    lastKeyIsColon = true;
+    return ViewType.GAMEPLAY;
+  }
+
+  private ViewType handleQuit(SharedState sharedState) {
+    if (lastKeyIsColon) {
+      lastKeyIsColon = false;
+      return ViewType.SAVE;
+    } else {
+      return ViewType.GAMEPLAY;
+    }
   }
 
   private void render(SharedState sharedState, TERenderer terenderer) {

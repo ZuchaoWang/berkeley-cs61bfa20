@@ -6,5 +6,6 @@ public enum ViewType {
   GAMEPLAY,
   ENCOUNTER,
   YOUWIN,
-  QUIT
+  SAVE,
+  EXIT
 };

@@ -1,11 +1,16 @@
 package byow.Core;
 
+import java.io.File;
 import java.util.Random;
 
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
+import edu.princeton.cs.introcs.In;
+import edu.princeton.cs.introcs.Out;
 
 public class SharedState {
+  private static final String saveFileName = "save.txt";
+
   public int worldWidth;
   public int worldHeight;
   public int hudHeight;
@@ -60,12 +65,22 @@ public class SharedState {
   }
 
   public boolean canLoad() {
-    return false;
+    File file = new File(saveFileName);
+    return file.exists();
   }
 
   public void load() {
+    In in = new In(saveFileName);
+    avatarX = in.readInt();
+    avatarY = in.readInt();
+    in.readLine(); // new line at the end
+    TETile.load(in, world);
   }
 
   public void save() {
+    Out out = new Out(saveFileName);
+    out.println(avatarX);
+    out.println(avatarY);
+    TETile.save(out, world);
   }
 }

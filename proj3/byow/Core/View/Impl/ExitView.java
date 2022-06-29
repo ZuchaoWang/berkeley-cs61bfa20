@@ -6,7 +6,7 @@ import byow.Core.View.ViewType;
 import byow.InputDemo.InputSource;
 import byow.TileEngine.TERenderer;
 
-public class QuitView implements BaseView {
+public class ExitView implements BaseView {
   @Override
   public ViewType interact(InputSource inputSource, SharedState sharedState, TERenderer terenderer) {
     System.exit(0);

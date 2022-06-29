@@ -13,9 +13,12 @@ import edu.princeton.cs.introcs.StdDraw;
 public class WorldGenView implements BaseView {
   private String seedStr;
 
+  public WorldGenView() {
+    seedStr = "";
+  }
+
   @Override
   public ViewType interact(InputSource inputSource, SharedState sharedState, TERenderer terenderer) {
-    seedStr = "";
     render(sharedState, terenderer);
     while (inputSource.possibleNextInput()) {
       char c = Character.toLowerCase(inputSource.getNextKey());

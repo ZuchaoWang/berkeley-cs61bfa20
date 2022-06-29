@@ -10,7 +10,7 @@ import byow.TileEngine.Tileset;
 public class WorldGen {
   private static final int randColor = 32;
   private static final int avatarCandiateCount = 3;
-  private static final double encounterProbability = 0.05;
+  private static final double encounterProbability = 0.03;
 
   public static void generateWorld(TETile[][] world, Random randGen) {
     generateFloor(world, randGen);

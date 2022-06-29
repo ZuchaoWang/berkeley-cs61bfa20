@@ -48,11 +48,11 @@ public class WelcomeView implements BaseView {
       sharedState.load();
       return ViewType.GAMEPLAY;
     } else {
-      return ViewType.QUIT;
+      return ViewType.EXIT;
     }
   }
 
   private ViewType handleQuit(SharedState sharedState) {
-    return ViewType.QUIT;
+    return ViewType.EXIT;
   }
 }

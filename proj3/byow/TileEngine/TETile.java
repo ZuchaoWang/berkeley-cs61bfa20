@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.util.Arrays;
 import java.util.Random;
 
+import edu.princeton.cs.introcs.In;
+import edu.princeton.cs.introcs.Out;
 import edu.princeton.cs.introcs.StdDraw;
 import byow.Core.RandomUtils;
 
@@ -188,5 +190,46 @@ public class TETile {
         }
 
         return copy;
+    }
+
+    public static void save(Out out, TETile[][] tiles) {
+        int width = tiles.length;
+        int height = tiles[0].length;
+        for (int x=0; x<width; x++) {
+            for (int y=0; y<height; y++) {
+                TETile tile = tiles[x][y];
+                out.print((int)(tile.character));
+                out.print(' ');
+                out.print(tile.textColor.getRGB());
+                out.print(' ');
+                out.print(tile.backgroundColor.getRGB());
+                out.print(' ');
+                out.print(tile.filepath != null);
+                out.print(' ');
+                out.print(tile.filepath == null ? "null" : tile.filepath);
+                out.println();
+                out.println(tile.description);
+            }
+        }
+    }
+
+    public static void load(In in, TETile[][] tiles) {
+        int width = tiles.length;
+        int height = tiles[0].length;
+        for (int x=0; x<width; x++) {
+            // System.out.println("x="+x);
+            for (int y=0; y<height; y++) {
+                // System.out.println("y="+y);
+                char character = (char)in.readInt();
+                Color textColor = new Color(in.readInt());
+                Color backgroundColor = new Color(in.readInt());
+                boolean hasFilepath = in.readBoolean();
+                String rawFilepath = in.readString();
+                String filepath = hasFilepath ? rawFilepath : null;
+                in.readLine(); // new line at the end
+                String description = in.readLine();
+                tiles[x][y] = new TETile(character, textColor, backgroundColor, description, filepath);
+            }
+        }
     }
 }

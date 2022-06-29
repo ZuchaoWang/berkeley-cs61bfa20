@@ -36,6 +36,6 @@ public class YouWinView implements BaseView {
   }
 
   private ViewType handleQuit(SharedState sharedState) {
-    return ViewType.QUIT;
+    return ViewType.EXIT;
   }
 }

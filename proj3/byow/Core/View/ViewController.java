@@ -2,8 +2,9 @@ package byow.Core.View;
 
 import byow.Core.SharedState;
 import byow.Core.View.Impl.EncounterView;
+import byow.Core.View.Impl.ExitView;
 import byow.Core.View.Impl.GamePlayView;
-import byow.Core.View.Impl.QuitView;
+import byow.Core.View.Impl.SaveView;
 import byow.Core.View.Impl.WelcomeView;
 import byow.Core.View.Impl.WorldGenView;
 import byow.Core.View.Impl.YouWinView;
@@ -38,8 +39,10 @@ public class ViewController {
         return new WorldGenView();
       case YOUWIN:
         return new YouWinView();
-      case QUIT:
-        return new QuitView();
+      case SAVE:
+        return new SaveView();
+      case EXIT:
+        return new ExitView();
       default:
         return null;
     }
