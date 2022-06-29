@@ -363,6 +363,7 @@ tramp
 #proj3/img
 #proj3/target
 #*.osm
+proj3/byow/Core/save.txt
 
 # Project 1B things
 # words
