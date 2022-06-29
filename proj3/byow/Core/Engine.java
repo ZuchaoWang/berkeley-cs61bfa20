@@ -60,8 +60,8 @@ public class Engine {
 
     private TETile[][] interactWithInput(InputSource inputSource) {
         SharedState sharedState = new SharedState(WIDTH, HEIGHT, HUDHEIGHT);
-        ViewController viewController = new ViewController();
         ter.initialize(sharedState.worldWidth, sharedState.worldHeight + sharedState.hudHeight);
+        ViewController viewController = new ViewController();
         viewController.interact(inputSource, sharedState, ter);
         return sharedState.world;
     }

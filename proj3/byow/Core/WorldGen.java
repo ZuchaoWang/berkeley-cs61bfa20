@@ -9,7 +9,7 @@ import byow.TileEngine.Tileset;
 
 public class WorldGen {
   private static final int randColor = 32;
-  private static final int avatarCandiateCount = 3;
+  private static final int avatarCandidateCount = 3;
   private static final double encounterProbability = 0.03;
 
   public static void generateWorld(TETile[][] world, Random randGen) {
@@ -41,14 +41,14 @@ public class WorldGen {
     }
     // choose {avatarCandiateCount} floor positions at random
     ArrayList<Integer> candidateIndices = new ArrayList<Integer>();
-    for (int i=0; i<avatarCandiateCount; i++) {
+    for (int i=0; i<avatarCandidateCount; i++) {
       int candidateIndex = RandomUtils.uniform(randGen, floorXs.size());
       candidateIndices.add(candidateIndex);
     }
     // pick the floor position farthest away from lockedDoor
     int farthestCandidateIndex = -1,
       farthestCandidateDis2 = -1;
-    for (int i=0; i<avatarCandiateCount; i++) {
+    for (int i=0; i<avatarCandidateCount; i++) {
       int candidateIndex = candidateIndices.get(i),
         x = floorXs.get(candidateIndex),
         y = floorYs.get(candidateIndex),
