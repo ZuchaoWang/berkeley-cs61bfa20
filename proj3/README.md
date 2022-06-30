@@ -76,6 +76,60 @@ This game can have different types of views. Each view serves for a specific pur
 
 ### View.BaseView.java
 
+This the interface of all views. It has only one method `interact`. It accepts user interaction from `InputSource`, modify `SharedState`, and render the view with `TERenderer`.s
+
+### View.Impl.WelcomeView.java
+
+When user first enter the game, they are presented with the `WelcomeView`. It asks user what to do next:
+
+- Press L to load state from a previous run, then enter `GamePlayView`
+- Press N to enter `WorldGenView`, which will make a new random world map
+- Press Q to enter `ExitView`, which will end the game
+
+The entry of this view is its `interact` method. It does the following jobs:
+
+- Render the view via `render`
+- Accepts one character from user input, convert it to lowercase and let `handleNextChar` to do what this character commands
+- `handleNextChar` will return the next view type, if it changes, we return `interact` and switch to next view; otherwise we are still in this view, and we go back to previous step waiting for next character
+
+Most views' `interact` method follows this paradigm, except for `SaveView` and `ExitView`.
+
+### View.Impl.WorldGenView.java
+
+After user presses N in `WelcomeView`, she will enter `WorldGenView`. Here user will enter a seed integer, then confirm via pressing S. Then `WorldGen.generateWorld` and `WorldGen.generateAvatarPos` will be called, to generate a new random world map and set up the initial position of avatar. Then it will switch to `GamePlayView`.
+
+### View.Impl.GamePlayView.java
+
+User can enter this view via three ways:
+
+- Load state from `save.txt`, by pressing L in `WelcomeView`; this file is saved in previous run
+- Generate a new random world map, by entering seed and pressing S in `WorldGenView`
+- Leave encounter, by pressing B in `EncounterView`
+
+In this view, user can press A/S/D/W to move the avatar to different direction by one step. The move can only happen when avatar won't hit the wall or escape from the floor area. If user move to an encounter tile, she will enter `EncounterView`. If user move to the only locked door tile, she wins and thus will enter `YouWinView`.
+
+User can also press :Q to enter `SaveView`.
+
+### View.Impl.EncounterView.java
+
+User arrives at this view by moving to an encounter tile in `GamePlayView`. Then user can press B to go back to `GamePlayView`.
+
+### View.Impl.YouWinView.java
+
+User arrives at this view by moving to a locked door tile in `GamePlayView`. Entering this view means the user wins. Then user can confirm the victory by pressing Q. This will enter `ExitView`.
+
+### View.Impl.SaveView.java
+
+User arrives at this view by pressing :Q in `GamePlayView`. After entering this view, no interaction will be performed. This view will immediately save game state into a file `save.txt`, then switch to `ExitView`.
+
+### View.Impl.ExitView.java
+
+User can enter this view by pressing Q in `WelcomeView`, `YouWinView`. User can also switch to this view automatically if load failed in `WelcomeView`, or after entering `SaveView`. This view will do no interaction. It just call `System.exit` to end the game.
+
 ## Algorithms
+
+### World Floor Generation Algorithm
+
+### Avatar Initial Position Generation Algorithm
 
 ## Persistence
