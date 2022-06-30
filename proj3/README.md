@@ -255,3 +255,26 @@ FFF+++++++hhhhhhhp
 We need the position to be random, to be in the floor region, and not too near to the locked door. To do that, we randomly choose three floor tiles, and use the one farthest to the locked door as the initial avatar position. Here we simply use Euclidean distance to find the farthest tile. This is implemented in `WorldGen.generateAvatarPos`. This method returns the position as a 2-element int array: the first element is x position, second is y position.
 
 ## Persistence
+
+Actually we have considered two schemes for persistence. First one is to remember all user input such as `N1234SASW`. This is reasonable, but a little bit complex:
+
+- We need to skip commands such as L and Q and :Q, because we don't want them to be replayed
+- After loading we need to replay all commands
+
+Therefore we use a much simpler scheme, we just remember avatar position and world tiles. In this way, both saving and loading are easy. We save state in a fixed file named `save.txt`. It contents look as follows:
+
+```text
+51
+6
+32 -16777216 -16777216 false null
+nothing
+32 -16777216 -16777216 false null
+nothing
+......
+```
+
+The first row `51` is `SharedState.avatarX`. Then the second row `6` is `SharedState.avatarY`. The following rows are all the tiles, where each tile comprises two rows. The first row of the first tile is `32 -16777216 -16777216 false null`, representing `character`, `textColor`, `backgroundColor`, `filepath==null`, `filepath==null?"null":filepath`. The second row of the first tile is `nothing`, representing `description`. We notice a few subtlties:
+
+- `character` is stored as int instead of char, this is because space character is hard to decode in text file
+- `filepath` is stored as `filepath==null` and `filepath==null?"null":filepath`, this is because null is hard to store in text file
+- `description` is stored in a separate row, this is because it can contain space, so we cannot store it as one field
