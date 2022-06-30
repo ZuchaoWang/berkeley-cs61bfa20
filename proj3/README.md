@@ -72,11 +72,26 @@ If no input is possible, `null` will be returned, then the whole game freezes. T
 
 ### View.ViewType.java
 
-This game can have different types of views. Each view serves for a specific purpose. For example, `WelcomeView` shows up when user just starts the game; `GamePlayView` shows up when user is actually moving the avatar in the worla map. All view types are defined here.
+This game can have different types of views. Each view serves for a specific purpose. For example, `WelcomeView` shows up when user just starts the game; `GamePlayView` shows up when user is actually moving the avatar in the worla map; `ExitView` ends the game. All view types are defined here, and most of their switching relationship is shown below.
+
+```text
+                         ┌ ASDW ┐
+                         │      ▾
+──▸ Welcome ──── L ────▸ GamePlay ────▸ Encounter
+     │  │                ▴ │  │ ▴           │ 
+     Q  N                | :Q | |           B
+     │  │                │ │  │ │           │ 
+     │  └─── WorldGen ───┘ │  │ └──────────-┘
+     ▾                     │  │ 
+◂── Exit ◂────── Save ─────┘  │ 
+     ▴                        │ 
+     └────────── YouWin ──────┘
+
+```
 
 ### View.BaseView.java
 
-This the interface of all views. It has only one method `interact`. It accepts user interaction from `InputSource`, modify `SharedState`, and render the view with `TERenderer`.s
+This the interface of all views. It has only one method `interact`. It accepts user interaction from `InputSource`, modify `SharedState`, and render the view with `TERenderer`.
 
 ### View.Impl.WelcomeView.java
 
@@ -129,6 +144,35 @@ User can enter this view by pressing Q in `WelcomeView`, `YouWinView`. User can 
 ## Algorithms
 
 ### World Floor Generation Algorithm
+
+The goal is to generate the floor of world map randomly. We briefly follows the [Binary Space Partitioning algorithm](https://gamedev.stackexchange.com/questions/82059/algorithm-for-procedureral-2d-map-with-connected-paths), see `WorldFloorGen.generateWorld` for full implementation. To repeat the basic ideas, below are the steps of the algorithm:
+
+- **Partition** the whole map space into rooms, using a BSP
+- **Shrink** rooms and make them unaligned
+- **Connect** the sibling nodes in the BSP to make hallways
+- **Rasterize** the world map, that is, to determine for each tile whether its floor or not
+
+#### Partition 
+
+The parition phase is implemented in `WorldFloorGen.partitionWorld`. It is a recursive partition. We first make the whole world area into one room, represented by a BSP node. Then for every BSP node, we try to partition it into two subnodes, and the room will subsequently be broken into two rooms. The split direction is random: either along x direction or y direction.
+
+During the partition, we ensure the two subnodes are separated by a distance of `minZoomInterMargin`. This gap is later used to build walls.
+
+We also ensure the subnodes are not too small, i.e. its width and height must be at least `minZoomWidth + minZoomInnerMargin`. Thus, if for example in the x direction, the width is less than `2 * (minZoomWidth + minZoomInnerMargin) + minZoomInterMargin`, then it's impossible to make the split. In such case we don't split in x-direction. If the subnodes are very large, i.e. its width are at least `2 * (maxZoomWidth + minZoomInnerMargin) + minZoomInterMargin`, then we must allow split in x-direction. If the size is in between, we have a 50% change to allow split.
+
+Eventually, if both x/y direction allows split, we choose one direction randomly. If only one direction allows split, we split in that direction. If no direction allows split, the recursive split ends.
+
+If eventually we choose to partition in x direction, we call `worldFloorGen.partitionWorldAtX`. Otherwise if we choose to partition in y direction, we call `worldFloorGen.partitionWorldAtY`. These two methods will recursives call `WorldFloorGen.partitionWorld` on the partitioned subnodes.
+
+#### Shrink
+
+The shrink phase is implemented in `worldFloorGen.shrinkRooms`. We first remove `minZoomInnerMargin` in x direction and in y direction. The x-direction remove must be either all on the left, or all on the right. The y-direction remove must be either all on the bottom, or all on the top. Whether left or right, bottom or top, are random. This is mainly to make the nodes unaligned.
+
+Then we con
+
+#### Connect
+
+#### Rasterize
 
 ### Avatar Initial Position Generation Algorithm
 

@@ -57,39 +57,39 @@ public class WorldFloorGen {
   // ref:
   // https://gamedev.stackexchange.com/questions/82059/algorithm-for-procedureral-2d-map-with-connected-paths
   public static boolean[][] generateWorld(int worldWidth, int worldHeight, Random randGen) {
-    BSPNode root = splitWorld(1, worldWidth - 2, 1, worldHeight - 2, randGen);
-    generateRooms(root, randGen);
-    generateHallways(root, randGen);
+    BSPNode root = partitionWorld(1, worldWidth - 2, 1, worldHeight - 2, randGen);
+    shrinkRooms(root, randGen);
+    generateHallwayPivots(root, randGen);
     boolean[][] world = rasterizeInit(root, worldWidth, worldHeight);
     rasterizeRoom(root, world);
     rasterizeHallway(root, world);
     return world;
   }
 
-  private static BSPNode splitWorld(int roomLeft, int roomRight, int roomBottom, int roomTop, Random randGen) {
+  private static BSPNode partitionWorld(int roomLeft, int roomRight, int roomBottom, int roomTop, Random randGen) {
     // split world recursively into BSPNodes, must be at least of size = minRoomSize
     // + minRoomInnerMargin
     // sibling BSPNodes must be separated at x or y direction for a distance =
     // minRoomInterMargin
     BSPNode parent = new BSPNode(roomLeft, roomRight, roomBottom, roomTop);
-    boolean canSplitX = canSplit(parent.roomWidth(), randGen),
-        canSplitY = canSplit(parent.roomHeight(), randGen);
-    if (!canSplitX && !canSplitY) {
+    boolean canPartitionX = canPartition(parent.roomWidth(), randGen),
+        canPartitionY = canPartition(parent.roomHeight(), randGen);
+    if (!canPartitionX && !canPartitionY) {
       return parent;
-    } else if (canSplitX && canSplitY) {
+    } else if (canPartitionX && canPartitionY) {
       if (RandomUtils.bernoulli(randGen)) {
-        return splitWorldAtX(parent, randGen);
+        return partitionWorldAtX(parent, randGen);
       } else {
-        return splitWorldAtY(parent, randGen);
+        return partitionWorldAtY(parent, randGen);
       }
-    } else if (canSplitX) {
-      return splitWorldAtX(parent, randGen);
+    } else if (canPartitionX) {
+      return partitionWorldAtX(parent, randGen);
     } else {
-      return splitWorldAtY(parent, randGen);
+      return partitionWorldAtY(parent, randGen);
     }
   }
 
-  private static boolean canSplit(int roomSize, Random randGen) {
+  private static boolean canPartition(int roomSize, Random randGen) {
     if (roomSize < 2 * (minRoomSize + minRoomInnerMargin) + minRoomInterMargin) {
       // if room too small, we cannot split
       return false;
@@ -102,20 +102,20 @@ public class WorldFloorGen {
     }
   }
 
-  private static BSPNode splitWorldAtX(BSPNode parent, Random randGen) {
+  private static BSPNode partitionWorldAtX(BSPNode parent, Random randGen) {
     int splitPos = sampleSplitPos(parent.roomLeft, parent.roomRight, randGen);
     parent.isLeaf = false;
-    parent.leftChild = splitWorld(parent.roomLeft, splitPos - 1, parent.roomBottom, parent.roomTop, randGen);
-    parent.rightChild = splitWorld(splitPos + minRoomInterMargin, parent.roomRight, parent.roomBottom, parent.roomTop,
+    parent.leftChild = partitionWorld(parent.roomLeft, splitPos - 1, parent.roomBottom, parent.roomTop, randGen);
+    parent.rightChild = partitionWorld(splitPos + minRoomInterMargin, parent.roomRight, parent.roomBottom, parent.roomTop,
         randGen);
     return parent;
   }
 
-  private static BSPNode splitWorldAtY(BSPNode parent, Random randGen) {
+  private static BSPNode partitionWorldAtY(BSPNode parent, Random randGen) {
     int splitPos = sampleSplitPos(parent.roomBottom, parent.roomTop, randGen);
     parent.isLeaf = false;
-    parent.leftChild = splitWorld(parent.roomLeft, parent.roomRight, parent.roomBottom, splitPos - 1, randGen);
-    parent.rightChild = splitWorld(parent.roomLeft, parent.roomRight, splitPos + minRoomInterMargin, parent.roomTop,
+    parent.leftChild = partitionWorld(parent.roomLeft, parent.roomRight, parent.roomBottom, splitPos - 1, randGen);
+    parent.rightChild = partitionWorld(parent.roomLeft, parent.roomRight, splitPos + minRoomInterMargin, parent.roomTop,
         randGen);
     return parent;
   }
@@ -127,7 +127,7 @@ public class WorldFloorGen {
     return splitPos;
   }
 
-  private static void generateRooms(BSPNode parent, Random randGen) {
+  private static void shrinkRooms(BSPNode parent, Random randGen) {
     if (parent.isLeaf) { // leaf node
       // ensure minRoomInnerMargin by first shrink it, this is mainly to dislocate
       // room
@@ -149,19 +149,19 @@ public class WorldFloorGen {
       parent.roomTop = parent.roomBottom + nextRoomHeight - 1;
     } else { // for non leaf
       // generate room for each children
-      generateRooms(parent.leftChild, randGen);
-      generateRooms(parent.rightChild, randGen);
+      shrinkRooms(parent.leftChild, randGen);
+      shrinkRooms(parent.rightChild, randGen);
       // refine parent bounding box
       parent.refineBoundingBox();
     }
   }
 
-  private static void generateHallways(BSPNode parent, Random randGen) {
+  private static void generateHallwayPivots(BSPNode parent, Random randGen) {
     if (parent.isLeaf) {
       return; // do nothing for leaf
     } else {
-      generateHallways(parent.leftChild, randGen);
-      generateHallways(parent.rightChild, randGen);
+      generateHallwayPivots(parent.leftChild, randGen);
+      generateHallwayPivots(parent.rightChild, randGen);
       // now find the connection point of leftChild and rightChild
       int minPivotX = Math.max(parent.leftChild.roomLeft, parent.rightChild.roomLeft),
           maxPivotX = Math.min(parent.leftChild.roomRight, parent.rightChild.roomRight),
