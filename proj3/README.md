@@ -145,7 +145,7 @@ User can enter this view by pressing Q in `WelcomeView`, `YouWinView`. User can 
 
 ### World Floor Generation Algorithm
 
-The goal is to generate the floor of world map randomly. We briefly follows the [Binary Space Partitioning algorithm](https://gamedev.stackexchange.com/questions/82059/algorithm-for-procedureral-2d-map-with-connected-paths), see `WorldFloorGen.generateWorld` for full implementation. To repeat the basic ideas, below are the steps of the algorithm:
+The goal is to generate the floor of world map randomly. The final result is represented as a 2d boolean array, with true representing floor tile. We briefly follows the [Binary Space Partitioning algorithm](https://gamedev.stackexchange.com/questions/82059/algorithm-for-procedureral-2d-map-with-connected-paths), see `WorldFloorGen.generateWorld` for full implementation. To repeat the basic ideas, below are the steps of the algorithm:
 
 - **Partition** the whole map space into rooms, using a BSP
 - **Shrink** rooms and make them unaligned
@@ -154,7 +154,14 @@ The goal is to generate the floor of world map randomly. We briefly follows the 
 
 #### Partition 
 
-The parition phase is implemented in `WorldFloorGen.partitionWorld`. It is a recursive partition. We first make the whole world area into one room, represented by a BSP node. Then for every BSP node, we try to partition it into two subnodes, and the room will subsequently be broken into two rooms. The split direction is random: either along x direction or y direction.
+The parition phase is implemented in `WorldFloorGen.partitionWorld`. It is a recursive partition. We first make the whole world area into one room, represented by a BSP node. The BSP node has following fields:
+
+- `roomLeft`, `roomRight`, `roomBottom` and `roomTop`: geometry of BSP node; for leaf node this is the room geometry, for non-leaf node this is the bounding box of children nodes' geometry
+- `isLeaf`: whether this is a leaf node or not
+- `hallwayPivotX` and `hallwayPivotY`: pivot position of hallway connection
+- `leftChild` and `righChild`: children BSPNode; but both will be null if this is a leaf node
+
+For every BSP node, we try to partition it into two subnodes, and the room will subsequently be broken into two rooms. The split direction is random: either along x direction or y direction.
 
 During the partition, we ensure the two subnodes are separated by a distance of `minZoomInterMargin`. This gap is later used to build walls.
 
@@ -162,18 +169,89 @@ We also ensure the subnodes are not too small, i.e. its width and height must be
 
 Eventually, if both x/y direction allows split, we choose one direction randomly. If only one direction allows split, we split in that direction. If no direction allows split, the recursive split ends.
 
-If eventually we choose to partition in x direction, we call `worldFloorGen.partitionWorldAtX`. Otherwise if we choose to partition in y direction, we call `worldFloorGen.partitionWorldAtY`. These two methods will recursives call `WorldFloorGen.partitionWorld` on the partitioned subnodes.
+If eventually we choose to partition in x direction, we call `WorldFloorGen.partitionWorldAtX`. Otherwise if we choose to partition in y direction, we call `WorldFloorGen.partitionWorldAtY`. These two methods will recursives call `WorldFloorGen.partitionWorld` on the partitioned subnodes.
+
+In the end, we have a BSP tree, where each leaf node contains a room. Each non-leaf node will have exactly two leaf nodes, either paritioned at x direction or at y direction.
 
 #### Shrink
 
-The shrink phase is implemented in `worldFloorGen.shrinkRooms`. We first remove `minZoomInnerMargin` in x direction and in y direction. The x-direction remove must be either all on the left, or all on the right. The y-direction remove must be either all on the bottom, or all on the top. Whether left or right, bottom or top, are random. This is mainly to make the nodes unaligned.
+The shrink phase is implemented in `WorldFloorGen.shrinkRooms`. We first remove `minZoomInnerMargin` columns (x-direction removal) and `minZoomInnerMargin` rows (y-direction removal). The x-direction removal must be either all on the left, or all on the right. The y-direction removal must be either all on the bottom, or all on the top. Whether left or right, bottom or top, are random. This is mainly to make the nodes unaligned.
 
-Then we con
+Then we continue to shrink the nodes. We will make sure their width and height are at least minRoomWidth, and at most maxRoomWidth.
+
+Until now we have determined the geometry of all leaf nodes. Finally we update the bounding box of all non-leaf BSP nodes.
 
 #### Connect
 
+We try to connect sibling nodes in the BSP tree. To do that, we will pick a pivot node for every non-leaf node, the connecting hallway can be uniquely determined by the position of pivot. We have two conditions. 
+
+**Condition 1**: If the two sibling's bounding box can see each other, we put the pivot between them. In the figure below, assuming L region is the bounding box of left child, R region is the bounding box of right child, then we will put pivot point randomly in one of the p position. Later by extending the pivot to left and to right, we can connect the left child and right child. This creates a straight line connection.
+
+```text
+LLL
+LLL  p  RRRR
+LLL  p  RRRR
+        RRRR
+```
+
+**Condition 2**: If the two sibling's bounding box cannot see each other, we put the pivot at the corner. In the figure below, we can put the pivot randomly in one of the p position. Assuming p is eventually chosen to be somewhere top right, later we can extend pivot leftward and downward to connect the chidlren. This creates a z-shape connection.
+
+```text
+LLL  pppp
+LLL  pppp
+LLL  pppp
+
+ppp  RRRR
+ppp  RRRR
+ppp  RRRR
+```
+
 #### Rasterize
 
+The rasterization phase consists of three methods. We first create an empty world using `WorldFloorGen.rasterizeInit`. This is a 2d boolean array filled with false.
+
+Then `WorldFloorGen.rasterizeRoom` visits all leaf nodes of the BSP tree, converting corresponding region into true value.
+
+Finally `WorldFloorGen.rasterizeHallway` visits all non-leaf nodes of the BSP tree, extending the pivot point towards both children until it connects to the children. Since the bounding box is tight, we are guaranteed to connect to the children. All tiles visited by the pivot turned into floor and are marked by true.
+
+There are some subtlies when extending the pivot point. Consider the example below, where a child node is represented by + and F. F are the actual floor region, but its bounding box also contains + region. Notice the pivot is at p position, and we will extend it leftward to connect to the child node. 
+
+```text
++++++FF++++++FF
+FFFFFFFFFFFFFFF
+FFF++++++FF++++
+FFF++++++++++++  p
+```
+
+Definitely we must cannot stop outside the bounding box, at the right of the bottom right +. In that way, although p connects with the bounding box, it does not connects with the floor region F, as shown below. Here h means the hallway points extended from the pivot.
+
+```text
++++++FF++++++FF
+FFFFFFFFFFFFFFF
+FFF++++++FF++++
+FFF++++++++++++hhp
+```
+
+We also should not keep extending pivot until it hits the floor as shown below. Because that will create unpleasant holes.
+
+```text
++++++FF++++++FF
+FFFFFFFFFFFFFFF
+FFF++++++FF++++
+FFFhhhhhhhhhhhhhhp
+```
+
+What we should do is stop when we just touch the floor, as shown below.
+
+```text
++++++FF++++++FF
+FFFFFFFFFFFFFFF
+FFF++++++FF++++
+FFF+++++++hhhhhhhp
+```
+
 ### Avatar Initial Position Generation Algorithm
+
+We need the position to be random, to be in the floor region, and not too near to the locked door. To do that, we randomly choose three floor tiles, and use the one farthest to the locked door as the initial avatar position. Here we simply use Euclidean distance to find the farthest tile. This is implemented in `WorldGen.generateAvatarPos`. This method returns the position as a 2-element int array: the first element is x position, second is y position.
 
 ## Persistence
